@@ -122,7 +122,7 @@ for i in range(0,len(trade_days),exchange):
         day=trade_days[j]
         if current_portfolio:
             daily_market_value=sum(shares*df.loc[day, s] for s, shares in current_portfolio.items())
-            net_v=daily_market_value*(1 fee_rate*fee_discount-tax_rate)
+            net_v=daily_market_value*(1-fee_rate*fee_discount-tax_rate)
         else:
             net_v=total_cash
         net_value_history[day]=net_v
