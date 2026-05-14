@@ -4,13 +4,8 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# 使用者輸入初始金額、回測年數
-while True:
-    try:
-        capital=float(input("Initial capital："))
-        break
-    except ValueError:
-         print("請輸入數字！")
+# 使用者輸入回測年數
+capital=1000000
 while True:
     try:
         years=int(input("請選擇1~5年："))
@@ -122,10 +117,10 @@ for i in range(0,len(trade_days),exchange):
         day=trade_days[j]
         if current_portfolio:
             daily_market_value=sum(shares*df.loc[day, s] for s, shares in current_portfolio.items())
-            net_v=daily_market_value*(1-fee_rate*fee_discount-tax_rate)
+            net_value=daily_market_value*(1-fee_rate*fee_discount-tax_rate)
         else:
-            net_v=total_cash
-        net_value_history[day]=net_v
+            net_value=total_cash
+        net_value_history[day]=net_value
 # 視覺化和結果導出
 plt.figure(figsize=(12, 6))
 plt.plot(net_value_history.index, net_value_history.values, 
@@ -139,15 +134,25 @@ plt.grid(True, alpha=0.3)
 plt.legend()
 plt.gcf().autofmt_xdate()
 
-final_val=net_value_history.iloc[-1]
-roi = ((final_val-capital)/capital)*100
+final_value=net_value_history.iloc[-1]
+roi = ((final_value-capital)/capital)*100
+final_net_value=final_value-capital
+# 夏普
+daily_returns=net_value_history.pct_change().dropna()
+risk_free_rate=0.02  # 假設無風險利率為 2% (台股定存/美債水平)
+trading_days_per_year=252 
+annual_return=daily_returns.mean()*trading_days_per_year
+annual_volatility=daily_returns.std()*np.sqrt(trading_days_per_year)
+sharpe_ratio=(annual_return-risk_free_rate)/annual_volatility
 
 print("-"*40)
 print(f"【量化組策略結算報告】")
 print(f"回測區間: {trade_days[0].date()} 至 {trade_days[-1].date()}")
 print(f"初始資金: {capital:,.0f} TWD")
-print(f"最終淨值: {final_val:,.0f} TWD (已扣交易成本)")
+print(f"最終淨值: {final_value:,.0f} TWD (已扣交易成本)")
+print(f"淨所得: {final_net_value:,.0f} TWD")
 print(f"累積淨報酬率: {roi:.2f}%")
+print(f"夏普值: {sharpe_ratio:.2f}")
 print("-"*40)
 
 plt.show()
